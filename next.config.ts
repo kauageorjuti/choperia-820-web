@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  distDir: process.env.NEXT_TEST_BUILD === 'true' ? '.next-test' : '.next',
+  distDir: process.env.NEXT_BUILD_DIR || (process.env.NEXT_TEST_BUILD === 'true' ? '.next-test' : '.next'),
   images: {
     remotePatterns: [
       {

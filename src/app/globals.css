@@ -93,3 +93,4 @@ body {
 *, *::before, *::after {
   box-sizing: border-box;
 }
+body,button,input,select,textarea{font-family:Arial,Helvetica,sans-serif!important;}

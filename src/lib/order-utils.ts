@@ -7,11 +7,13 @@ export type OrderRecord = {
 
 /** Normaliza pedidos criados pelo aplicativo, pelo PDV e por versões legadas. */
 export function getOrderStatus(order: OrderRecord): string {
-  if (typeof order.status === "string" && order.status.trim()) return order.status;
-  if (typeof order.currentStatus === "string" && order.currentStatus.trim()) return order.currentStatus;
+  const aliases: Record<string,string> = {recebido:'created',accepted:'created',preparando:'preparing',pronto:'readyForPickup',entregue:'delivered',cancelado:'cancelled'};
+  const normalize = (value:string) => aliases[value.trim()] || value.trim();
+  if (typeof order.status === "string" && order.status.trim()) return normalize(order.status);
+  if (typeof order.currentStatus === "string" && order.currentStatus.trim()) return normalize(order.currentStatus);
   if (Array.isArray(order.statusHistory)) {
     const lastStatus = [...order.statusHistory].reverse().find((status) => typeof status === "string" && status.trim());
-    if (typeof lastStatus === "string") return lastStatus;
+    if (typeof lastStatus === "string") return normalize(lastStatus);
   }
   return "created";
 }

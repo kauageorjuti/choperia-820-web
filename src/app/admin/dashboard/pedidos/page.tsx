@@ -35,6 +35,7 @@ import Image from "next/image";
 import PrintReceipt from "@/components/PrintReceipt";
 import logger from "@/lib/logger";
 import { adminRequest } from "@/lib/admin-api";
+import {getOrderStatus} from "@/lib/order-utils";
 
 type ViewMode = "colunas" | "lista";
 type SectorFilter = "todos" | "delivery" | "balcao";
@@ -102,7 +103,7 @@ export default function PedidosPage() {
     const unsubOrders = onSnapshot(
       q,
       (snapshot) => {
-        const fetched = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+        const fetched = snapshot.docs.map((d) => ({ id: d.id, ...d.data(),status:getOrderStatus(d.data()) }));
         setOrders(fetched);
         setLoading(false);
         if (initialLoadDone.current) {
@@ -161,7 +162,6 @@ export default function PedidosPage() {
   // ─── Handlers ────────────────────────────────────────────────
   const handleAdvanceStatus = async (orderId: string, currentStatus: string, orderType = "pickup") => {
     let nextStatus = "created";
-    const hist: string[] = [];
     if (!currentStatus || currentStatus === "created" || currentStatus === "recebido") {
       nextStatus = "preparing";
     } else if (currentStatus === "preparing") {
@@ -187,7 +187,7 @@ export default function PedidosPage() {
         nextStatus,
         ...logger.fromError(error),
       });
-      alert("Erro ao atualizar o pedido. Tente novamente.");
+      alert(error instanceof Error ? error.message : "Erro ao atualizar o pedido. Tente novamente.");
     }
   };
 
@@ -241,7 +241,7 @@ export default function PedidosPage() {
         resourceId: cancelModalOrder.id,
         ...logger.fromError(error),
       });
-      alert("Erro ao cancelar pedido. Tente novamente.");
+      alert(error instanceof Error ? error.message : "Erro ao cancelar pedido. Tente novamente.");
     } finally {
       setIsCancelling(false);
     }
@@ -430,7 +430,7 @@ export default function PedidosPage() {
           ) : (
             <button onClick={(e) => { e.stopPropagation(); handleAdvanceStatus(order.id, order.status, order.type); }}
               className="flex-1 bg-[#41af00] hover:bg-[#266d00] text-white font-bold py-2.5 rounded-lg transition-colors text-sm">
-              {order.type === "delivery" ? "DESPACHAR" : "ENTREGAR"}
+              {order.type === "delivery" ? "CONCLUIR ENTREGA" : "ENTREGAR"}
             </button>
           )}
         </div>

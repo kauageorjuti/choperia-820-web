@@ -2,6 +2,7 @@ import { adminDb } from '@/lib/firebase-admin';
 import { verifyAdmin, productSchema, categorySchema } from '@/lib/admin-rest';
 import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { z } from 'zod';
+import { getOrderStatus } from '@/lib/order-utils';
 export const runtime = 'nodejs';
 type Context = { params:Promise<{resource:string;id:string}> };
 export async function PATCH(request: Request, context:Context) {
@@ -20,7 +21,9 @@ export async function PATCH(request: Request, context:Context) {
         if (!order.exists) throw new Error('not-found');
         const data = order.data()!;
         const next:Record<string,string[]> = {created:['preparing','cancelled'],recebido:['preparing','cancelled'],accepted:['preparing','cancelled'],preparing:[data.type==='delivery'?'onTheWay':'readyForPickup','cancelled'],readyForPickup:['delivered','cancelled'],onTheWay:['delivered','cancelled']};
-        if (!next[data.status || 'created']?.includes(input.data.status)) throw new Error('invalid-transition');
+        const current = getOrderStatus(data);
+        if (current === input.data.status) return;
+        if (!next[current]?.includes(input.data.status)) throw new Error('invalid-transition');
         tx.update(ref,{status:input.data.status,statusHistory:FieldValue.arrayUnion(input.data.status),statusAudit:FieldValue.arrayUnion({status:input.data.status,at:Timestamp.now(),by:user.uid}),...(input.data.cancelReason?{cancelReason:input.data.cancelReason}:{})});
       });
     } else {

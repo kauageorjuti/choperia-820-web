@@ -6,7 +6,7 @@ Gravar a versão de teste em `http://127.0.0.1:3002`, com os emuladores ativos. 
 |---|---|---|
 | 00:00–00:25 | Página inicial e layout em computador/celular | Contexto da Choperia 820 e objetivo do projeto web |
 | 00:25–01:05 | Categorias, busca, foto ampliada e ingredientes | Cardápio obtido via GET `/api/menu` |
-| 01:05–01:45 | Porção, observação, quantidades, nome e mesa | Carrinho preservado e revisão do total |
+| 01:05–01:45 | Porção, observação, quantidades, nome, telefone e delivery/retirada | Carrinho preservado e revisão do total |
 | 01:45–02:15 | Enviar e mostrar número/status | POST `/api/menu/orders`, validação e persistência |
 | 02:15–03:00 | Login admin, pedido e avanço até entregue | Listeners, autorização, filtros e histórico de auditoria |
 | 03:00–03:35 | Criar, editar e remover um produto de teste | CRUD via API com Firebase Auth |

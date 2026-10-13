@@ -8,6 +8,7 @@ import { ChevronRight, Printer, Edit, CheckCircle, User, MapPin, CreditCard, Ali
 import Image from "next/image";
 import logger from "@/lib/logger";
 import { adminRequest } from "@/lib/admin-api";
+import {getOrderStatus} from "@/lib/order-utils";
 
 export default function OrderDetailsPage() {
   const { id } = useParams();
@@ -23,7 +24,7 @@ export default function OrderDetailsPage() {
         const docRef = doc(db, "orders", id as string);
         const snap = await getDoc(docRef);
         if (snap.exists()) {
-          setOrder({ id: snap.id, ...snap.data() });
+          setOrder({ id: snap.id, ...snap.data(),status:getOrderStatus(snap.data()) });
           logger.info("Pedido carregado", {
             action: "FETCH_ORDER",
             component: "OrderDetailsPage",
@@ -141,7 +142,7 @@ export default function OrderDetailsPage() {
         nextStatus,
         ...logger.fromError(error),
       });
-      alert("Erro ao atualizar o status do pedido. Tente novamente.");
+      alert(error instanceof Error ? error.message : "Erro ao atualizar o status do pedido. Tente novamente.");
     }
   };
 
