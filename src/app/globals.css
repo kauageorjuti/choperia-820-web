@@ -1,0 +1,95 @@
+@import "tailwindcss";
+
+@theme {
+  --color-surface: #f9f9f9;
+  --color-surface-dim: #dadada;
+  --color-surface-bright: #f9f9f9;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f3f3f3;
+  --color-surface-container: #eeeeee;
+  --color-surface-container-high: #e8e8e8;
+  --color-surface-container-highest: #e2e2e2;
+  --color-on-surface: #1a1c1c;
+  --color-on-surface-variant: #524435;
+  --color-inverse-surface: #2f3131;
+  --color-inverse-on-surface: #f1f1f1;
+  --color-outline: #857462;
+  --color-outline-variant: #d8c3ae;
+  --color-surface-tint: #855300;
+  --color-primary: #855300;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #d48806;
+  --color-on-primary-container: #472a00;
+  --color-inverse-primary: #ffb95f;
+  --color-secondary: #5f5e5e;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #e2dfde;
+  --color-on-secondary-container: #636262;
+  --color-tertiary: #266d00;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #41af00;
+  --color-on-tertiary-container: #103900;
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+  --color-background: #f9f9f9;
+  --color-on-background: #1a1c1c;
+  --color-surface-variant: #e2e2e2;
+  
+  /* Brand colors */
+  --color-deep-amber: #d48806;
+  --color-dark-charcoal: #1f1f1f;
+  --color-success-green: #266d00; /* Tertiary base */
+  --color-warning-orange: #d48806; /* Amber base */
+  --color-danger-red: #ba1a1a; /* Error base */
+
+  /* Typography */
+  --font-sans: 'Inter', sans-serif;
+
+  /* Spacing */
+  /* Prefixo "app" evita sobrescrever tokens nativos do Tailwind, como max-w-md. */
+  --app-spacing-base: 8px;
+  --app-spacing-xs: 4px;
+  --app-spacing-sm: 12px;
+  --app-spacing-md: 24px;
+  --app-spacing-lg: 40px;
+  --app-spacing-xl: 64px;
+  --app-spacing-gutter: 24px;
+
+  /* Radius */
+  --radius-sm: 0.25rem;
+  --radius-DEFAULT: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-full: 9999px;
+
+  /* Ambient Shadows */
+  --shadow-ambient: 0 4px 12px rgba(31, 31, 31, 0.08);
+  --shadow-ambient-pressed: 0 2px 4px rgba(31, 31, 31, 0.12);
+}
+
+:root {
+  --background: var(--color-background);
+  --foreground: var(--color-on-background);
+}
+
+/* Dark mode overrides if needed in the future */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* For now, dark mode is toggled via class if needed, or falls back to standard */
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  /* Fluid grid margins can be applied via container classes */
+}
+
+/* Reset default Next.js global styles that interfere */
+*, *::before, *::after {
+  box-sizing: border-box;
+}

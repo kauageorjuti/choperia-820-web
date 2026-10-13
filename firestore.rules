@@ -1,0 +1,67 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return signedIn() && request.auth.token.admin == true;
+    }
+
+    // O cardápio é público: o cliente pode navegar sem login.
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // O cliente só pode criar e consultar os próprios pedidos.
+    // Alterações de status e edição de itens ficam restritas ao painel.
+    match /orders/{orderId} {
+      allow create: if isAdmin() || (
+        signedIn() && request.resource.data.userId == request.auth.uid
+      );
+      allow read: if isAdmin() || (
+        signedIn() && resource.data.userId == request.auth.uid
+      );
+      allow update, delete: if isAdmin();
+    }
+
+    // O checkout consulta apenas as configurações públicas da loja.
+    match /store_settings/{settingsId} {
+      allow read: if settingsId == 'main';
+      allow write: if isAdmin();
+    }
+
+    match /staff/{staffId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /couriers/{courierId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /cashflow/{cashflowId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Permite ao cliente manter somente o próprio perfil, caso essa coleção
+    // seja usada futuramente pelo aplicativo.
+    match /users/{userId} {
+      allow read, write: if isAdmin() || (
+        signedIn() && userId == request.auth.uid
+      );
+    }
+
+    // Negação padrão: nenhuma coleção nova fica pública por acidente.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,14 @@
+Prática Extensionista VII — Choperia 820 Web
+
+Integrante 1 — Nome: [PREENCHER] | Código: [PREENCHER]
+Integrante 2 — Nome: [PREENCHER] | Código: [PREENCHER ou remover]
+Integrante 3 — Nome: [PREENCHER] | Código: [PREENCHER ou remover]
+Integrante 4 — Nome: [PREENCHER] | Código: [PREENCHER ou remover]
+Integrante 5 — Nome: [PREENCHER] | Código: [PREENCHER ou remover]
+
+Repositório GitHub: https://github.com/kauageorjuti/choperia-820-web
+Vídeo MP4 de até 5 minutos: DEMONSTRACAO_CHOPERIA_820.mp4 (3 minutos e 2 segundos)
+Relatório: RELATORIO_CHOPERIA_820.pdf
+
+Cada integrante deve enviar este arquivo na atividade indicada pelo professor.
+

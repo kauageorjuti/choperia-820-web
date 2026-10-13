@@ -1,0 +1,38 @@
+{
+  "name": "choperia_820_admin",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --webpack",
+    "build": "next build --webpack",
+    "start": "next start",
+    "lint": "eslint",
+    "test:domain": "node tests/menu-domain.cjs",
+    "test:integration": "node tests/integration.mjs",
+    "emulators": "firebase emulators:start --config firebase.test.json --project demo-choperia820 --only auth,firestore"
+  },
+  "dependencies": {
+    "@types/dompurify": "^3.0.5",
+    "dompurify": "^3.4.7",
+    "firebase": "^12.13.0",
+    "firebase-admin": "^13.10.0",
+    "lucide-react": "^1.16.0",
+    "next": "16.2.6",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "recharts": "^3.8.1",
+    "swagger-ui-dist": "^5.33.2",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.6",
+    "firebase-tools": "^15.33.0",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

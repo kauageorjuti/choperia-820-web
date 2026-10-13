@@ -1,0 +1,68 @@
+import assert from 'node:assert/strict';
+import { initializeApp } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
+import { getAuth } from 'firebase-admin/auth';
+import { writeFileSync, mkdirSync } from 'node:fs';
+process.env.FIRESTORE_EMULATOR_HOST='127.0.0.1:8085';
+process.env.FIREBASE_AUTH_EMULATOR_HOST='127.0.0.1:9095';
+const projectId='demo-choperia820';
+const app=initializeApp({projectId}); const db=getFirestore(app); const auth=getAuth(app);
+const base='http://127.0.0.1:3002';
+let checks=0; const check=(actual,expected,label)=>{assert.deepEqual(actual,expected,label);checks++;console.log('OK',label);};
+const category = 'Teste de integração';
+await db.doc('store_settings/main').set({isOpen:true,deliveryFee:0});
+await db.doc('categories/test').set({name:category,order:1,isActive:true});
+await db.doc('products/test').set({name:'Porção de teste',description:'Produto exclusivo do emulador',category,price:19.9,image:'assets/images/produtos/fritas.jpg',ingredients:['Batata'],portions:[{label:'2 pessoas',price:35.9}],isActive:true});
+await db.doc('products/inactive').set({name:'Inativo',price:10,isActive:false});
+let admin;
+try {admin=await auth.getUser('test-admin');} catch {admin=await auth.createUser({uid:'test-admin',email:'admin@teste.local',password:'Teste-local-820!',displayName:'Administrador de teste'});}
+await auth.setCustomUserClaims(admin.uid,{admin:true});
+await db.doc('staff/test-admin').set({name:'Administrador de teste',role:'admin',isActive:true,pinCode:'123456',avatarIcon:'admin'});
+const login=await fetch('http://127.0.0.1:9095/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=demo-api-key',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:admin.email,password:'Teste-local-820!',returnSecureToken:true})});
+const {idToken}=await login.json(); assert.ok(idToken);
+let cookie='';
+async function call(path,method='GET',body,admin=false,useCookie=true) {
+  const res=await fetch(base+path,{method,headers:{Origin:base,'Content-Type':'application/json',...(useCookie&&cookie?{Cookie:cookie}:{}),...(admin?{Authorization:`Bearer ${idToken}`}:{})},...(body===undefined?{}:{body:JSON.stringify(body)})});
+  const setCookie=res.headers.get('set-cookie'); if(setCookie&&useCookie) cookie=setCookie.split(';')[0];
+  const data=await res.json(); return {status:res.status,data};
+}
+check((await call('/api/menu')).data.products.length,1,'Cardápio omite produto inativo');
+check((await call('/api/admin/products')).status,401,'CRUD bloqueia visitante');
+check((await call('/api/admin/products','POST',{name:'Inválido',price:-1},true)).status,400,'CRUD valida campos e preço');
+const product={name:'Produto cadastrado',description:'Teste CRUD',category,image:'',price:10,ingredients:['Sal'],isActive:true};
+const created=await call('/api/admin/products','POST',product,true); check(created.status,201,'Cadastro REST');
+check((await call(`/api/admin/products/${created.data.id}`,'PATCH',{price:12.5},true)).status,200,'Edição REST');
+check((await call('/api/menu')).data.products.find(p=>p.id===created.data.id).price,12.5,'Edição reflete no cardápio');
+check((await call(`/api/admin/products/${created.data.id}`,'DELETE',undefined,true)).status,200,'Exclusão REST');
+const order={requestId:crypto.randomUUID(),name:'Cliente de teste',table:'12',items:[{productId:'test',quantity:3,portion:'2 pessoas',notes:'Sem sal'}],total:0};
+const sent=await call('/api/menu/orders','POST',order); check(sent.status,201,'Envio do pedido');
+check((await call(`/api/menu/orders/${sent.data.id}`)).data.total,107.7,'Servidor ignora total enviado e calcula porção');
+const retries=await Promise.all([call('/api/menu/orders','POST',order),call('/api/menu/orders','POST',order)]);
+check(retries.map(r=>r.data.id),[sent.data.id,sent.data.id],'Repetição não duplica pedido');
+check((await call(`/api/menu/orders/${sent.data.id}`,'GET',undefined,false,false)).status,404,'Outra sessão não lê pedido');
+check((await call('/api/menu/orders','POST',{...order,requestId:crypto.randomUUID(),items:[{...order.items[0],quantity:0}]})).status,400,'Quantidade inválida é rejeitada');
+check((await call('/api/menu/orders','POST',{...order,requestId:crypto.randomUUID(),items:[{...order.items[0],portion:'inventada'}]})).status,409,'Porção inválida é rejeitada');
+check((await call(`/api/admin/orders/${sent.data.id}`,'PATCH',{status:'delivered'},true)).status,409,'Status não permite pular etapas');
+for(const status of ['preparing','readyForPickup','delivered']) {
+  check((await call(`/api/admin/orders/${sent.data.id}`,'PATCH',{status},true)).status,200,'Atualização '+status);
+  check((await call(`/api/menu/orders/${sent.data.id}`)).data.status,status,'Cliente acompanha '+status);
+}
+const saved=(await db.doc(`orders/${sent.data.id}`).get()).data();
+check(saved.statusAudit.length,4,'Histórico registra todas as etapas');
+check(saved.statusAudit[3].by,'test-admin','Histórico identifica administrador');
+assert.ok(saved.statusAudit[3].at.toDate());checks++;
+check(saved.observation.includes('Mesa 12')&&saved.observation.includes('Sem sal'),true,'Mesa e observações chegam ao painel');
+await db.doc('store_settings/main').update({isOpen:false});
+check((await call('/api/menu/orders','POST',{...order,requestId:crypto.randomUUID()})).status,409,'Loja fechada não recebe pedidos');
+await db.doc('store_settings/main').update({isOpen:true});
+const wrongOrigin=await fetch(base+'/api/menu/orders',{method:'POST',headers:{Origin:'https://outro.local','Content-Type':'application/json',Cookie:cookie},body:JSON.stringify(order)});
+check(wrongOrigin.status,403,'Origem externa é rejeitada');
+const spec=await call('/api/openapi'); check(spec.data.openapi,'3.0.3','OpenAPI válido');
+const docs=await fetch(base+'/api/docs');check(docs.status,200,'Swagger acessível');
+const asset=await fetch(base+'/swagger/swagger-ui-bundle.js');check(asset.status,200,'Swagger UI local disponível');
+const pin=await call('/api/auth/verify','POST',{id:'test-admin',pin:'123456'});check(pin.status,200,'Login por PIN existente');
+check((await call('/api/auth/verify','POST',{id:'test-admin',pin:'000000'})).status,401,'PIN inválido é rejeitado');
+mkdirSync('docs',{recursive:true});
+writeFileSync('docs/VALIDACAO.md',`# Validação automatizada\n\nExecutada em ${new Date().toISOString()}.\n\n${checks} verificações de integração passaram no Firebase Emulator (projeto ${projectId}). Nenhum pedido criado no projeto real.\n\nCobertura: produtos ativos, CRUD autenticado, campos inválidos, preço recalculado, porções, idempotência concorrente, isolamento entre sessões, fluxo de status, auditoria, mesa/observações, loja fechada, origem externa, login por PIN e Swagger.\n\nAs verificações de interface e a compilação são registradas separadamente em REQUISITOS.md.\n`);
+console.log(`${checks} verificações de integração passaram.`);
+process.exit(0);

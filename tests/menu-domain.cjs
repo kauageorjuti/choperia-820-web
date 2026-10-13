@@ -1,0 +1,24 @@
+const { readFileSync } = require('node:fs');
+const { resolve } = require('node:path');
+const Module = require('node:module');
+const ts = require('typescript');
+const assert = require('node:assert/strict');
+const source = resolve(__dirname, '../src/lib/menu-domain.ts');
+const compiled = ts.transpileModule(readFileSync(source,'utf8'), { compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText;
+const mod = new Module(source); mod._compile(compiled,source);
+const {priceOrder, publicProduct, productImage} = mod.exports;
+const product = publicProduct('p1',{name:'Porção',price:19.9,portions:[{label:'2 pessoas',price:35.9}]});
+const item = {productId:'p1',quantity:3,portion:'2 pessoas',notes:'Sem cebola'};
+const result = priceOrder([item],new Map([['p1',product]]));
+assert.equal(result.total,107.7);
+assert.equal(result.items[0].product.price,35.9);
+assert.equal(result.items[0].notes,'Sem cebola');
+assert.throws(()=>priceOrder([item],new Map()),/indisponível/);
+assert.throws(()=>priceOrder([{...item,portion:'inventada'}],new Map([['p1',product]])),/porção válida/);
+assert.throws(()=>priceOrder([{...item,quantity:-1}],new Map([['p1',product]])),/Quantidade/);
+assert.throws(()=>priceOrder([{...item,quantity:1.5}],new Map([['p1',product]])),/Quantidade/);
+assert.throws(()=>priceOrder([{...item,portion:''}],new Map([['p1',product]])),/porção válida/);
+assert.equal(productImage('assets/images/produtos/fritas.jpg'),'/assets/images/produtos/fritas.jpg');
+assert.equal(productImage('javascript:alert(1)'),'/assets/images/produtos/placeholder.jpg');
+console.log('10 verificações de preços, porções, quantidades e imagens passaram.');
+
