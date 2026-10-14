@@ -81,3 +81,7 @@ O envio real exige WhatsApp Business Cloud API, um número registrado e um templ
 Sem essa configuração, o cliente pode preencher nome/endereço e enviar o pedido normalmente; não recebe mensagem falsa de código enviado. O código expira em 10 minutos, tem limite de cinco tentativas, uso único e pertence à sessão que o solicitou. Há limite de três envios por telefone/hora. Configure TTL nas coleções web_verifications e web_limits pelo campo expiresAt para eliminar registros expirados.
 
 Somente no projeto demo-choperia820 com emuladores explicitamente habilitados, o envio é simulado e o código é 654321. Nenhum WhatsApp real é enviado nos testes.
+
+## Execução local para uso do painel
+
+Para navegar sem compilação durante os cliques, execute `npm run build:local` e depois `npm run start:local`. A versão compilada fica em .next-build e atende http://127.0.0.1:3000. Feche o servidor de desenvolvimento dessa porta antes de iniciar. Após alterar código, compile novamente. Use npm run dev somente durante o desenvolvimento.

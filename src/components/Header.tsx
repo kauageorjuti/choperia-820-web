@@ -54,7 +54,10 @@ export function Header() {
     const lastSeen = localStorage.getItem("notif_last_seen");
     lastSeenRef.current = lastSeen;
 
-    const timer = setInterval(() => setTime(new Date()), 1000);
+    const timer = setInterval(() => setTime(current => {
+      const next = new Date();
+      return current.getMinutes() === next.getMinutes() && current.getHours() === next.getHours() ? current : next;
+    }), 1000);
 
     // Store status
     const unsubStore = onSnapshot(doc(db, "store_settings", "main"), (snap) => {
@@ -74,19 +77,19 @@ export function Header() {
       setRecentOrders(orders);
     });
 
-    // Todos os pedidos para histórico
-    const qAll = query(collection(db, "orders"), orderBy("createdAt", "desc"), limit(100));
-    const unsubAll = onSnapshot(qAll, (snap) => {
-      setAllOrders(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-    });
-
     return () => {
       clearInterval(timer);
       unsubStore();
       unsubRecent();
-      unsubAll();
     };
   }, []);
+
+  useEffect(() => {
+    if (!historyOpen) return;
+    return onSnapshot(query(collection(db, "orders"), orderBy("createdAt", "desc"), limit(100)), snap => {
+      setAllOrders(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+  }, [historyOpen]);
 
   const handleOpenNotif = () => {
     setNotifOpen((v) => !v);

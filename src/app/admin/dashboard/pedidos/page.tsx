@@ -69,6 +69,8 @@ export default function PedidosPage() {
   const [pdvSearch, setPdvSearch] = useState("");
   const [isSubmittingPDV, setIsSubmittingPDV] = useState(false);
 
+  const [advancing,setAdvancing]=useState<string[]>([]);
+  const advancingRef=useRef(new Set<string>());
   const initialLoadDone = useRef(false);
   const allOrdersPrintRef = useRef<any[]>([]);
 
@@ -161,6 +163,8 @@ export default function PedidosPage() {
 
   // ─── Handlers ────────────────────────────────────────────────
   const handleAdvanceStatus = async (orderId: string, currentStatus: string, orderType = "pickup") => {
+    if(advancingRef.current.has(orderId)) return;
+    advancingRef.current.add(orderId);setAdvancing(ids=>[...ids,orderId]);
     let nextStatus = "created";
     if (!currentStatus || currentStatus === "created" || currentStatus === "recebido") {
       nextStatus = "preparing";
@@ -171,6 +175,7 @@ export default function PedidosPage() {
     }
     try {
       await adminRequest(`/api/admin/orders/${orderId}`, "PATCH", { status: nextStatus });
+      setOrders(current => current.map(order => order.id === orderId ? { ...order, status: nextStatus } : order));
       logger.info("Status do pedido avançado (Kanban)", {
         action: "ADVANCE_ORDER_STATUS",
         component: "PedidosPage",
@@ -188,6 +193,8 @@ export default function PedidosPage() {
         ...logger.fromError(error),
       });
       alert(error instanceof Error ? error.message : "Erro ao atualizar o pedido. Tente novamente.");
+    } finally {
+      advancingRef.current.delete(orderId);setAdvancing(ids=>ids.filter(id=>id!==orderId));
     }
   };
 
@@ -419,18 +426,18 @@ export default function PedidosPage() {
         <div className="flex gap-2 mt-3">
           {col !== "ready" ? (
             <>
-              <button onClick={(e) => { e.stopPropagation(); handleAdvanceStatus(order.id, order.status, order.type); }}
+              <button disabled={advancing.includes(order.id)} onClick={(e) => { e.stopPropagation(); handleAdvanceStatus(order.id, order.status, order.type); }}
                 className={`flex-1 text-white font-bold py-2.5 rounded-lg transition-colors text-sm ${col === "received" ? "bg-[#855300] hover:bg-[#6b4200]" : "bg-[#d48806] hover:bg-[#b47000]"}`}>
-                {col === "received" ? "PREPARAR" : "PRONTO"}
+                {advancing.includes(order.id) ? "ATUALIZANDO…" : col === "received" ? "PREPARAR" : "PRONTO"}
               </button>
               <button onClick={(e) => { e.stopPropagation(); handlePrint(order); }} className="w-10 h-10 flex items-center justify-center border border-[#e2e2e2] rounded-lg hover:bg-[#f9f9f9] text-[#524435]">
                 <Printer size={16} />
               </button>
             </>
           ) : (
-            <button onClick={(e) => { e.stopPropagation(); handleAdvanceStatus(order.id, order.status, order.type); }}
+            <button disabled={advancing.includes(order.id)} onClick={(e) => { e.stopPropagation(); handleAdvanceStatus(order.id, order.status, order.type); }}
               className="flex-1 bg-[#41af00] hover:bg-[#266d00] text-white font-bold py-2.5 rounded-lg transition-colors text-sm">
-              {order.type === "delivery" ? "CONCLUIR ENTREGA" : "ENTREGAR"}
+              {advancing.includes(order.id) ? "ATUALIZANDO…" : order.type === "delivery" ? "CONCLUIR ENTREGA" : "ENTREGAR"}
             </button>
           )}
         </div>
@@ -735,7 +742,7 @@ export default function PedidosPage() {
                   <div className="shrink-0 text-right">
                     <p className="font-black text-[#d48806]">R$ {Number(order.total || 0).toFixed(2).replace('.', ',')}</p>
                     <div className="flex gap-2 mt-2">
-                      <button onClick={() => handleAdvanceStatus(order.id, order.status, order.type)}
+                      <button disabled={advancing.includes(order.id)} onClick={() => handleAdvanceStatus(order.id, order.status, order.type)}
                         className="px-3 py-1.5 bg-[#855300] text-white rounded-lg text-xs font-bold hover:bg-[#6b4200] transition-colors">
                         Avançar
                       </button>
