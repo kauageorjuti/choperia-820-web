@@ -4,13 +4,11 @@ import { customerSession, privateHeaders } from '@/lib/menu-server';
 import { createHash } from 'node:crypto';
 import { Timestamp } from 'firebase-admin/firestore';
 import { z } from 'zod';
-import {normalizePhone,ownProfileRef,customerRef} from '@/lib/customer-server';
+import {normalizePhone,ownProfileRef,customerRef,sameOrigin} from '@/lib/customer-server';
 export const runtime = 'nodejs';
 const schema = z.object({ requestId: z.uuid(), name: z.string().trim().min(2).max(80), phone:z.string().transform(normalizePhone).refine(Boolean),type:z.enum(['delivery','pickup']),address:z.string().trim().max(500).default(''),paymentMethod:z.enum(['Pix','Cartão de crédito','Cartão de débito','Dinheiro']), items: z.array(z.object({ productId: z.string().min(1).max(150).regex(/^[^/]+$/), quantity: z.number().int().min(1).max(20), portion: z.string().max(100), notes: z.string().trim().max(300) })).min(1).max(40) }).refine(v=>v.type==='pickup'||v.address.length>=8);
 export async function POST(request: Request) {
-  const origin = request.headers.get('origin');
-  const expectedOrigin = `${new URL(request.url).protocol}//${request.headers.get('host')}`;
-  if (origin !== expectedOrigin) return Response.json({ error: 'Origem inválida.' }, { status: 403 });
+  if (!sameOrigin(request)) return Response.json({ error: 'Origem inválida.' }, { status: 403 });
   const session = await customerSession();
   if (!session) return Response.json({ error: 'Reabra o cardápio para iniciar uma sessão.' }, { status: 401 });
   let body;

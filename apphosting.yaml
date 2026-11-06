@@ -8,3 +8,7 @@ env:
     availability:
       - BUILD
       - RUNTIME
+  - variable: CHOPERIA_PUBLIC_ORIGIN
+    value: "https://choperia-820-web--choperia-820-app-4f675.us-east4.hosted.app"
+    availability:
+      - RUNTIME

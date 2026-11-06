@@ -11,7 +11,11 @@ export function normalizePhone(value:string) {
 }
 export const ownProfileRef = (session:string,phone:string) => adminDb.doc(`web_customer_sessions/${hash(session+':'+phone)}`);
 export const customerRef = (phone:string) => adminDb.doc(`web_customers/${hash(phone)}`);
-export function sameOrigin(request:Request) { return request.headers.get('origin')===`${new URL(request.url).protocol}//${request.headers.get('host')}`; }
+export function sameOrigin(request:Request) {
+  const expected = process.env.CHOPERIA_PUBLIC_ORIGIN
+    || `${new URL(request.url).protocol}//${request.headers.get('host')}`;
+  return request.headers.get('origin') === expected;
+}
 export async function rateLimit(key:string,max=30) {
   const hour=Math.floor(Date.now()/3600000);
   const ref=adminDb.doc(`web_limits/${hash(key+':'+hour)}`);

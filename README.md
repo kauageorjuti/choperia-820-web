@@ -4,7 +4,7 @@ Cardápio digital da Choperia 820, em Orlândia/SP, desenvolvido para a Prática
 
 - **Código-fonte:** [repositório público](https://github.com/kauageorjuti/choperia-820-web)
 - **Demonstração:** [vídeo MP4 de 3min02s](docs/DEMONSTRACAO_CHOPERIA_820.mp4), com telas, fluxo de pedidos e código.
-- **Hospedagem:** a versão Next.js e o painel rodam juntos na mesma aplicação. Não foi localizado um endereço público ativo dessa versão. O [endereço Firebase existente](https://choperia-820-app-4f675.web.app/) serve o aplicativo Flutter; ele não é o deploy do painel Next.js.
+- **Hospedagem:** a versão Next.js e o painel rodam juntos na mesma aplicação. A versão pública está em [Cardápio Web](https://choperia-820-web--choperia-820-app-4f675.us-east4.hosted.app/) e [Painel por PIN](https://choperia-820-web--choperia-820-app-4f675.us-east4.hosted.app/admin). O [endereço Firebase existente](https://choperia-820-app-4f675.web.app/) serve o aplicativo Flutter; ele não é o deploy do painel Next.js.
 
 ## O que o sistema faz
 
@@ -116,6 +116,8 @@ O cenário automatizado cobre catálogo, CRUD, cálculos, autorização, isolame
 2. Configure as variáveis do Firebase no ambiente de hospedagem, no build e no runtime conforme aplicável. Não configure as flags dos emuladores no ambiente real.
 3. Revise as regras de Firestore e Storage e o acesso administrativo no projeto usado. Se usar a configuração de CORS do painel, ajuste `STORAGE_CORS_ORIGINS` ao domínio de publicação. Teste com dados descartáveis antes de conectar o ambiente público a pedidos reais.
 4. Confirme no mesmo domínio o cardápio `/`, o login `/admin/login`, o painel `/admin/dashboard` e o Swagger `/api/docs`. Atualize a URL de demonstração quando o deploy estiver pronto.
+
+Para atualizar somente o backend público, a partir de um clone limpo, use `firebase deploy --only apphosting:choperia-820-web --project choperia-820-app-4f675`. A configuração do App Hosting está em `apphosting.yaml`. O site Flutter continua no Firebase Hosting. Se o domínio público mudar, atualize `CHOPERIA_PUBLIC_ORIGIN` para que o checkout valide o endereço correto. O login por PIN publicado limita tentativas por perfil.
 
 A recuperação de cadastro em outro aparelho exige a API do WhatsApp Business, número registrado e template de autenticação aprovado. O token e demais variáveis estão listados em `.env.example`. Consulte o [manual](docs/MANUAL.md) para a configuração complementar.
 
