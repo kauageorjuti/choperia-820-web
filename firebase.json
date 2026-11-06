@@ -3,7 +3,7 @@
     {
       "backendId": "choperia-820-web",
       "rootDir": ".",
-      "ignore": ["node_modules", ".git", ".next", ".next-*", ".env*", "docs", "graphify-out", "firebase-debug*.log"]
+      "ignore": ["node_modules", ".git", ".next", ".next-*", ".env*", "graphify-out", "firebase-debug*.log"]
     }
   ]
 }
