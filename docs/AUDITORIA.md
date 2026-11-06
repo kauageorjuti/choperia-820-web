@@ -24,6 +24,8 @@ A solução usa React/TypeScript, API REST Next.js/Node.js e Cloud Firestore. O 
 
 ## Hospedagem
 
+**Atualização posterior:** o [cardápio Next.js](https://choperia-820-web--choperia-820-app-4f675.us-east4.hosted.app/) e o [painel administrativo por PIN](https://choperia-820-web--choperia-820-app-4f675.us-east4.hosted.app/admin) foram publicados no Firebase App Hosting do mesmo projeto. O aplicativo Flutter continua no Firebase Hosting. As observações abaixo registram o estado encontrado antes da publicação.
+
 - [Repositório público](https://github.com/kauageorjuti/choperia-820-web): confirmado. Sem homepage cadastrada, sem registros públicos de deployment e sem GitHub Pages identificado.
 - [Endereço Firebase conhecido](https://choperia-820-app-4f675.web.app/): responde com o aplicativo Flutter. Nesse domínio, `/admin` devolveu o mesmo conteúdo da página inicial, e `/api/openapi` retornou HTML. Esses resultados não correspondem ao painel ou à API do Next.js.
 - Não foi localizado um deploy público da versão Next.js. O cardápio e o painel estão no mesmo código e podem ser servidos no mesmo domínio, desde que a hospedagem execute o servidor Next.js. Um deploy público não foi realizado nesta revisão.
