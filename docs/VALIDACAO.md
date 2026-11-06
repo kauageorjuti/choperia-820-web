@@ -1,6 +1,6 @@
 # Validação automatizada
 
-Executada em 2026-10-13T22:24:51.946Z.
+Executada em 2026-11-06T22:40:53.071Z.
 
 48 verificações de integração passaram no Firebase Emulator (projeto demo-choperia820). Nenhum pedido criado no projeto real.
 
