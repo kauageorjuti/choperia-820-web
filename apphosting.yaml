@@ -1,0 +1,10 @@
+runConfig:
+  minInstances: 0
+  maxInstances: 1
+
+env:
+  - variable: NEXT_PUBLIC_CHOPERIA_APP_HOSTING
+    value: "true"
+    availability:
+      - BUILD
+      - RUNTIME

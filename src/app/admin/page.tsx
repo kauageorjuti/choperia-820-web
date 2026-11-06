@@ -101,7 +101,7 @@ export default function LoginPage() {
           component: "LoginPage",
           userId: selectedStaff.id,
         });
-        setError("PIN incorreto");
+        setError(res.status === 429 ? "Limite de tentativas atingido. Aguarde para tentar novamente." : res.status >= 500 ? "O serviço de login está indisponível. Tente novamente." : "PIN incorreto");
         setPinInput("");
       }
     } catch (err) {

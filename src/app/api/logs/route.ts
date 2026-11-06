@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
+  if (process.env.NEXT_PUBLIC_CHOPERIA_APP_HOSTING === 'true') {
+    return NextResponse.json({ success: true });
+  }
   try {
     const logData = await req.json();
     

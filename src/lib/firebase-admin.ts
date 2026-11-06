@@ -1,20 +1,27 @@
-import * as admin from 'firebase-admin';
+import 'server-only';
+import { cert, getApp, getApps, initializeApp } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
+import { getFirestore } from 'firebase-admin/firestore';
 
-if (!admin.apps.length) {
-  try {
-    admin.initializeApp({
-      ...(process.env.FIRESTORE_EMULATOR_HOST ? { projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID } : { credential: admin.credential.cert({
-        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        // Handles escaped newlines from env variables
-        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-      }) }),
-    });
-    console.log("Firebase Admin SDK initialized successfully.");
-  } catch (error) {
-    console.error("Firebase admin initialization error. Certifique-se de configurar FIREBASE_CLIENT_EMAIL e FIREBASE_PRIVATE_KEY no .env.local", error);
+function createAdminApp() {
+  const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+  const storageBucket = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
+
+  if (process.env.NEXT_PUBLIC_CHOPERIA_APP_HOSTING === 'true') {
+    // App Hosting supplies FIREBASE_CONFIG and the runtime service account.
+    return initializeApp();
   }
+  if (process.env.FIRESTORE_EMULATOR_HOST) return initializeApp({ projectId });
+
+  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+  const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
+  return initializeApp({
+    projectId,
+    storageBucket,
+    ...(clientEmail && privateKey ? { credential: cert({ projectId, clientEmail, privateKey }) } : {}),
+  });
 }
 
-export const adminAuth = admin.auth();
-export const adminDb = admin.firestore();
+export const adminApp = getApps().length ? getApp() : createAdminApp();
+export const adminAuth = getAuth(adminApp);
+export const adminDb = getFirestore(adminApp);

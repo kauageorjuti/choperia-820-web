@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { adminDb, adminAuth } from "@/lib/firebase-admin";
 import { z } from "zod";
+import { rateLimit } from "@/lib/customer-server";
 
 // Validação de segurança dos inputs com Zod
 const loginSchema = z.object({
-  id: z.string().min(1, "ID é obrigatório"),
+  id: z.string().min(1, "ID é obrigatório").max(128).regex(/^[^/]+$/),
   pin: z.string().length(6, "O PIN deve ter exatamente 6 dígitos").regex(/^\d+$/, "Apenas números"),
 });
 
@@ -32,6 +33,10 @@ export async function POST(req: Request) {
     
     if (!data?.isActive) {
       return NextResponse.json({ error: "Usuário inativo" }, { status: 403 });
+    }
+
+    if (process.env.NEXT_PUBLIC_CHOPERIA_APP_HOSTING === 'true' && !await rateLimit('staff-pin:' + id, 8)) {
+      return NextResponse.json({ error: "Limite de tentativas atingido. Aguarde para tentar novamente." }, { status: 429 });
     }
 
     // SECURITY: PIN validation no servidor

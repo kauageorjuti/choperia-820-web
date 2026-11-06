@@ -13,14 +13,14 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase only if it hasn't been initialized yet
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+const app = getApps().length ? getApp() : firebaseConfig.apiKey ? initializeApp(firebaseConfig) : initializeApp();
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 if (process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS === 'true' && !getApps().some(a => a.name === 'emulators-connected')) {
   connectAuthEmulator(auth, 'http://127.0.0.1:9095', {disableWarnings:true});
   connectFirestoreEmulator(db, '127.0.0.1', 8085);
-  initializeApp(firebaseConfig, 'emulators-connected');
+  initializeApp(app.options, 'emulators-connected');
 }
 
 export { app, auth, db, storage };
